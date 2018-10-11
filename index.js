@@ -46,7 +46,7 @@ function onMouseMove(event) {
 var lineMaterial = new THREE.LineBasicMaterial({ color: "#ff0000" });
 var linesMaterial = new THREE.LineBasicMaterial({ color: "#00ff00" });
 
-var segments = 10;
+var segments = 100;
 var radius1 = .8;
 var circleGeometry1 = new THREE.CircleGeometry(radius1, segments);
 // Remove center vertex
@@ -94,31 +94,31 @@ window.addEventListener('mousemove', onMouseMove, false);
 var linesGroup = new THREE.Group();
 scene.add(linesGroup);
 
-// lineLoop1.geometry.vertices.forEach((vertex, index) => {
-//     var nextVertex = lineLoop1.geometry.vertices[(index + 1) % lineLoop1.geometry.vertices.length];
-//     var lineGeometry = new THREE.Geometry();
-//     lineGeometry.vertices.push(vertex);
-//     lineGeometry.vertices.push(nextVertex);
-//     var line = new THREE.Line(lineGeometry, linesMaterial);
-//     line.name = "lineGeometry-" + index;
-//     linesGroup.add(line);
-// });
-
 lineLoop1.geometry.vertices.forEach((vertex, index) => {
-    var nextIndex = (index + 1) % lineLoop1.geometry.vertices.length;
-    //compute the middle point of the line
-    var start = lineLoop1.geometry.vertices[index];
-    var end = lineLoop1.geometry.vertices[nextIndex];
-    var middle = end.clone().sub(start).multiplyScalar(0.5).add(start);
-    var cubeGeometry = new THREE.BoxGeometry(.1, .1, .1);
-    var cubeMaterial = new THREE.MeshBasicMaterial({ color: "#00ff00", wireframe: true });
-    var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    cube.name = "cubeGeometry-" + index;
-    cube.position.x = middle.x;
-    cube.position.y = middle.y;
-    cube.rotation.z = index / segments * 360 * 0.0174533 + 90;
-    linesGroup.add(cube);
+    var nextVertex = lineLoop1.geometry.vertices[(index + 1) % lineLoop1.geometry.vertices.length];
+    var lineGeometry = new THREE.Geometry();
+    lineGeometry.vertices.push(vertex);
+    lineGeometry.vertices.push(nextVertex);
+    var line = new THREE.Line(lineGeometry, linesMaterial);
+    line.name = "lineGeometry-" + index;
+    linesGroup.add(line);
 });
+
+// lineLoop1.geometry.vertices.forEach((vertex, index) => {
+//     var nextIndex = (index + 1) % lineLoop1.geometry.vertices.length;
+//     //compute the middle point of the line
+//     var start = lineLoop1.geometry.vertices[index];
+//     var end = lineLoop1.geometry.vertices[nextIndex];
+//     var middle = end.clone().sub(start).multiplyScalar(0.5).add(start);
+//     var cubeGeometry = new THREE.BoxGeometry(.1, .1, .1);
+//     var cubeMaterial = new THREE.MeshBasicMaterial({ color: "#00ff00", wireframe: true });
+//     var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+//     cube.name = "cubeGeometry-" + index;
+//     cube.position.x = middle.x;
+//     cube.position.y = middle.y;
+//     cube.rotation.z = index / segments * 360 * 0.0174533 + 90;
+//     linesGroup.add(cube);
+// });
 
 linesGroup.rotation.x = Math.PI / 2;
 // linesGroup.rotation.y = Math.PI / 2;
@@ -128,22 +128,20 @@ scene.updateMatrixWorld();
 linesGroup.children.forEach((line, index) => {
     // var line = linesGroup.children[0];
 
-    // Draw a line from pointA in the given direction at distance 100
-    var pointA = camera.position.clone();
-    var direction = new THREE.Vector3(0, 0, -10);
-    direction.normalize();
-    // var distance = 100; // at what distance to determine pointB
-    var pointB = new THREE.Vector3();
-    line.getWorldPosition(pointB);
-    // pointB.addVectors(pointA, direction.multiplyScalar(distance));
-
-    // var start = line.geometry.vertices[0];
-    // var end = line.geometry.vertices[1];
-    // var middle = end.clone().sub(start).multiplyScalar(0.5).add(start);
+    // // Draw a line from pointA in the given direction at distance 100
     // var pointA = camera.position.clone();
+    // var direction = new THREE.Vector3(0, 0, -10);
+    // direction.normalize();
+    // // var distance = 100; // at what distance to determine pointB
     // var pointB = new THREE.Vector3();
     // line.getWorldPosition(pointB);
-    // var pointB = pointB.add(pointB);
+    // // pointB.addVectors(pointA, direction.multiplyScalar(distance));
+
+    var start = line.geometry.vertices[0].clone();
+    var end = line.geometry.vertices[1].clone();
+    var middle = end.sub(start).multiplyScalar(0.5).add(start);
+    var pointA = camera.position.clone();
+    var pointB = line.localToWorld(middle);
 
     var geometry = new THREE.Geometry();
     geometry.vertices.push(pointA);
@@ -188,8 +186,14 @@ var render = function () {
 
         // var origin = check.position.clone().transformDirection(check.matrixWorld);
 
-        var pointB = new THREE.Vector3();
-        check.getWorldPosition(pointB);
+        // var pointB = new THREE.Vector3();
+        // check.getWorldPosition(pointB);
+
+        var start = check.geometry.vertices[0].clone();
+        var end = check.geometry.vertices[1].clone();
+        var middle = end.sub(start).multiplyScalar(0.5).add(start);
+        var pointA = camera.position.clone();
+        var pointB = check.localToWorld(middle);
 
         raycaster.set(camera.position, (pointB).sub(camera.position.clone()).normalize());
         // raycaster.set(camera.position, (origin).sub(camera.position).normalize());
