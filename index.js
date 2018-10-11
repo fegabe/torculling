@@ -28,7 +28,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 var lineMaterial = new THREE.LineBasicMaterial({ color: "#ff0000" });
-var linesMaterial = new THREE.LineBasicMaterial({ color: "#00ff00" });
+var linesMaterial = new THREE.LineBasicMaterial({ color: "#ff0000" });
 
 var segments = 100;
 var radius1 = .8;
@@ -36,24 +36,22 @@ var circleGeometry1 = new THREE.CircleGeometry(radius1, segments);
 // Remove center vertex
 circleGeometry1.vertices.shift();
 var lineLoop1 = new THREE.LineLoop(circleGeometry1, lineMaterial);
-
-var cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-var cubeMaterial = new THREE.MeshBasicMaterial({ color: "#433F81", wireframe: true });
-var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-cube.name = "cube";
-
-// Add cube to Scene
-scene.add(cube);
 // scene.add(lineLoop1);
+
+var linesGroup = new THREE.Group();
+scene.add(linesGroup);
+
+var torusGeometry = new THREE.TorusGeometry(10 / 16.5, 3 / 16, 16 / 1, 100 / 4);
+var torusMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true });
+var torus = new THREE.Mesh(torusGeometry, torusMaterial);
+scene.add(torus);
 
 lineLoop1.rotation.x = Math.PI / 2;
 lineLoop1.rotation.z = Math.PI / 4;
 
+torus.rotation.x = Math.PI / 2;
 // cube.rotation.x = 0.3;
 // cube.rotation.y = 0.3;
-
-var linesGroup = new THREE.Group();
-scene.add(linesGroup);
 
 lineLoop1.geometry.vertices.forEach((vertex, index) => {
     var nextVertex = lineLoop1.geometry.vertices[(index + 1) % lineLoop1.geometry.vertices.length];
@@ -85,18 +83,15 @@ linesGroup.children.forEach((line, index) => {
     // scene.add(raycastLine);
 });
 
-
 var cameraInitialPosition = camera.position.clone();
 
 // Render Loop
 var render = function () {
     requestAnimationFrame(render);
 
-    // cube.rotation.x += 0.01;
-    // cube.rotation.y += 0.01;
-
     controls.update();
 
+    torus.visible = true;
     var objectsToCheckVisibility = linesGroup.children;
     objectsToCheckVisibility.forEach((check, index) => {
 
@@ -107,13 +102,14 @@ var render = function () {
         var pointB = check.localToWorld(middle);
 
         raycaster.set(camera.position, (pointB).sub(camera.position.clone()).normalize());
-        var intersects = raycaster.intersectObjects([cube, check]);
+        var intersects = raycaster.intersectObjects([torus, check]);
         var visible = true;
         if (intersects.length > 0) {
             visible = (intersects[0].object == check);
         }
         check.visible = visible;
     });
+    // torus.visible = false;
 
     // Render the scene
     renderer.render(scene, camera);
